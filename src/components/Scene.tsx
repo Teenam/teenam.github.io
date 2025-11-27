@@ -6,10 +6,9 @@ import type { Project } from '../types/config'
 
 interface SceneProps {
   projects: Project[]
-  loading?: boolean
 }
 
-function Scene({ projects, loading }: SceneProps) {
+function Scene({ projects }: SceneProps) {
   const swarmRef = useRef<Group>(null)
 
   useFrame((state) => {
