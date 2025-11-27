@@ -100,15 +100,6 @@ function Footer({ footer }: FooterProps) {
         >
           &copy; {currentYear} {footer.name}. All rights reserved.
         </p>
-        <p
-          style={{
-            fontSize: '0.75rem',
-            opacity: 0.6,
-            marginTop: '0.5rem',
-          }}
-        >
-          v{__APP_VERSION__}
-        </p>
       </div>
     </footer>
   )
