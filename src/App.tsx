@@ -56,9 +56,12 @@ function App() {
         display: 'flex', 
         justifyContent: 'center', 
         alignItems: 'center', 
+        width: '100vw',
         height: '100vh',
+        minHeight: '100vh',
         color: 'white',
-        fontSize: '1.5rem'
+        fontSize: '1.5rem',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
       }}>
         Loading...
       </div>
@@ -66,11 +69,21 @@ function App() {
   }
 
   return (
-    <div style={{ width: '100vw', height: '100vh', position: 'relative', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+    <div style={{ 
+      width: '100vw', 
+      height: '100vh', 
+      minHeight: '100vh',
+      position: 'relative', 
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      display: 'block',
+      margin: 0,
+      padding: 0
+    }}>
       <Canvas 
         shadows
         gl={{ antialias: true, alpha: false }}
         dpr={[1, 2]}
+        style={{ width: '100%', height: '100%', display: 'block' }}
       >
         <PerspectiveCamera makeDefault position={[0, 0, 10]} fov={50} />
         <ambientLight intensity={0.5} />
