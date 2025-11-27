@@ -2,13 +2,14 @@ import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Group } from 'three'
 import ProjectCard from './ProjectCard'
-import type { Config } from '../types/config'
+import type { Project } from '../types/config'
 
 interface SceneProps {
-  config: Config
+  projects: Project[]
+  loading?: boolean
 }
 
-function Scene({ config }: SceneProps) {
+function Scene({ projects, loading }: SceneProps) {
   const swarmRef = useRef<Group>(null)
 
   useFrame((state) => {
@@ -19,10 +20,19 @@ function Scene({ config }: SceneProps) {
   })
 
   const cubeConfigs = useMemo(() => {
-    const projects = config.projects
+    const activeProjects = projects.length
+      ? projects
+      : [
+          {
+            title: 'Loading…',
+            description: 'Fetching projects',
+            link: '',
+            type: 'project' as const,
+          },
+        ]
 
-    return projects.map((project, index) => {
-      const angle = (index / Math.max(projects.length, 1)) * Math.PI * 2
+    return activeProjects.map((project, index) => {
+      const angle = (index / Math.max(activeProjects.length, 1)) * Math.PI * 2
       const radius = 3.5 + (index % 4)
       const heightVariance = ((index % 5) - 2) * 0.8
 
@@ -39,7 +49,7 @@ function Scene({ config }: SceneProps) {
         rotationSpeed: 0.3 + (index % 4) * 0.08,
       }
     })
-  }, [config.projects])
+  }, [projects])
 
   return (
     <group ref={swarmRef}>

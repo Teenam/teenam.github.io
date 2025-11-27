@@ -30,7 +30,8 @@ A professional, interactive 3D landing page built with React Three Fiber, TypeSc
 
 2. **Edit `public/config.json`** to customize:
    - Page title and subtitle
-   - Your projects (title, description, link, type)
+   - Default/fallback projects (title, description, link, type)
+   - GitHub username to auto-load repositories
    - Footer text and name
    - Social media links
 
@@ -53,7 +54,7 @@ A professional, interactive 3D landing page built with React Three Fiber, TypeSc
 
 ### Projects
 
-Add your projects in the `projects` array in `public/config.json`:
+Add fallback projects in the `projects` array in `public/config.json`:
 
 ```json
 {
@@ -68,6 +69,21 @@ Add your projects in the `projects` array in `public/config.json`:
 - **description**: Brief description of the project
 - **link**: URL to your project (leave empty if no link)
 - **type**: "website" or "project" (affects link text)
+
+### GitHub Projects
+
+```json
+"github": {
+  "username": "teenam",
+  "maxProjects": 12,
+  "includeForks": false
+}
+```
+
+- `username`: GitHub account to fetch repositories from
+- `maxProjects`: Maximum repos to show (defaults to 12)
+- `includeForks`: Set to `true` to include forked repos
+- If the API call fails, the app falls back to the `projects` array
 
 ### Social Links
 

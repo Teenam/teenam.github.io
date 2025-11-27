@@ -18,6 +18,11 @@
       "type": "project"
     }
   ],
+  "github": {
+    "username": "teenam",
+    "maxProjects": 12,
+    "includeForks": false
+  },
   "footer": {
     "text": "Connect with me",
     "name": "Your Name",
