@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Group } from 'three'
 import ProjectCard from './ProjectCard'
@@ -9,35 +9,49 @@ interface SceneProps {
 }
 
 function Scene({ config }: SceneProps) {
-  const groupRef = useRef<Group>(null)
+  const swarmRef = useRef<Group>(null)
 
   useFrame((state) => {
-    if (groupRef.current) {
-      groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.1) * 0.1
-    }
+    if (!swarmRef.current) return
+    const t = state.clock.elapsedTime * 0.05
+    swarmRef.current.rotation.y = Math.sin(t) * 0.2
+    swarmRef.current.rotation.x = Math.cos(t * 0.7) * 0.05
   })
 
-  const projects = config.projects
-  const radius = 8
-  const angleStep = (Math.PI * 2) / projects.length
+  const cubeConfigs = useMemo(() => {
+    const projects = config.projects
+
+    return projects.map((project, index) => {
+      const angle = (index / Math.max(projects.length, 1)) * Math.PI * 2
+      const radius = 3.5 + (index % 4)
+      const heightVariance = ((index % 5) - 2) * 0.8
+
+      const basePosition: [number, number, number] = [
+        Math.cos(angle) * radius,
+        heightVariance,
+        Math.sin(angle) * radius,
+      ]
+
+      return {
+        project,
+        basePosition,
+        floatSpeed: 0.6 + (index % 5) * 0.15,
+        rotationSpeed: 0.3 + (index % 4) * 0.08,
+      }
+    })
+  }, [config.projects])
 
   return (
-    <group ref={groupRef}>
-      {projects.map((project, index) => {
-        const angle = index * angleStep - Math.PI / 2
-        const x = Math.cos(angle) * radius
-        const z = Math.sin(angle) * radius
-        const y = Math.sin(index * 0.5) * 2
-
-        return (
-          <ProjectCard
-            key={index}
-            project={project}
-            position={[x, y, z]}
-            rotation={[0, angle + Math.PI / 2, 0]}
-          />
-        )
-      })}
+    <group ref={swarmRef}>
+      {cubeConfigs.map(({ project, basePosition, floatSpeed, rotationSpeed }, index) => (
+        <ProjectCard
+          key={`${project.title}-${index}`}
+          project={project}
+          basePosition={basePosition}
+          floatSpeed={floatSpeed}
+          rotationSpeed={rotationSpeed}
+        />
+      ))}
     </group>
   )
 }
