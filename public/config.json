@@ -1,0 +1,48 @@
+{
+  "page": {
+    "title": "Portfolio - Projects",
+    "mainTitle": "My Projects",
+    "subtitle": "A collection of my work and creations"
+  },
+  "projects": [
+    {
+      "title": "Example Project 1",
+      "description": "This is an example project. Replace this with your own project details.",
+      "link": "https://example.com",
+      "type": "website"
+    },
+    {
+      "title": "Example Project 2",
+      "description": "Another example project. Add your projects here with their descriptions and links.",
+      "link": "",
+      "type": "project"
+    }
+  ],
+  "footer": {
+    "text": "Connect with me",
+    "name": "Your Name",
+    "socials": [
+      {
+        "name": "GitHub",
+        "url": "https://github.com/yourusername",
+        "icon": "github"
+      },
+      {
+        "name": "LinkedIn",
+        "url": "https://linkedin.com/in/yourusername",
+        "icon": "linkedin"
+      },
+      {
+        "name": "Twitter",
+        "url": "https://twitter.com/yourusername",
+        "icon": "twitter"
+      },
+      {
+        "name": "Email",
+        "url": "mailto:your.email@example.com",
+        "icon": "email"
+      }
+    ]
+  }
+}
+
