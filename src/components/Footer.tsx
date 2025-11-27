@@ -1,11 +1,19 @@
 import type { Config } from '../types/config'
+import { ABSOLUTE_CENTERED, GLASSMORPHISM, HOVER_TRANSITION } from '../constants/styles'
+import { getCurrentYear, createHoverHandlers } from '../utils/helpers'
 
 interface FooterProps {
   footer: Config['footer']
 }
 
 function Footer({ footer }: FooterProps) {
-  const currentYear = new Date().getFullYear()
+  const currentYear = getCurrentYear()
+  const socialHoverHandlers = createHoverHandlers(
+    'rgba(255, 255, 255, 0.2)',
+    'rgba(255, 255, 255, 0.3)',
+    'translateY(0) scale(1)',
+    'translateY(-4px) scale(1.1)'
+  )
 
   const getSocialIcon = (iconName: string): string => {
     const icons: Record<string, string> = {
@@ -22,11 +30,8 @@ function Footer({ footer }: FooterProps) {
   return (
     <footer
       style={{
-        position: 'absolute',
+        ...ABSOLUTE_CENTERED,
         bottom: '2rem',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        textAlign: 'center',
         color: 'white',
         pointerEvents: 'auto',
         zIndex: 20,
@@ -34,8 +39,7 @@ function Footer({ footer }: FooterProps) {
     >
       <div
         style={{
-          background: 'rgba(255, 255, 255, 0.1)',
-          backdropFilter: 'blur(10px)',
+          ...GLASSMORPHISM,
           borderRadius: '16px',
           padding: '2rem 3rem',
           minWidth: '300px',
@@ -76,17 +80,10 @@ function Footer({ footer }: FooterProps) {
                 color: 'white',
                 textDecoration: 'none',
                 fontSize: '1.5rem',
-                transition: 'all 0.3s ease',
+                transition: HOVER_TRANSITION,
                 cursor: 'pointer',
               }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)'
-                e.currentTarget.style.transform = 'translateY(-4px) scale(1.1)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)'
-                e.currentTarget.style.transform = 'translateY(0) scale(1)'
-              }}
+              {...socialHoverHandlers}
               title={social.name}
               aria-label={social.name}
             >
@@ -102,6 +99,15 @@ function Footer({ footer }: FooterProps) {
           }}
         >
           &copy; {currentYear} {footer.name}. All rights reserved.
+        </p>
+        <p
+          style={{
+            fontSize: '0.75rem',
+            opacity: 0.6,
+            marginTop: '0.5rem',
+          }}
+        >
+          v{__APP_VERSION__}
         </p>
       </div>
     </footer>

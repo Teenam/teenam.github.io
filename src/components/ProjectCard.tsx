@@ -14,7 +14,6 @@ function ProjectCard({ project, position, rotation }: ProjectCardProps) {
   const groupRef = useRef<Group>(null)
   const boxRef = useRef<Mesh>(null)
   const [hovered, setHovered] = useState(false)
-  const [clicked, setClicked] = useState(false)
 
   useFrame((state) => {
     if (groupRef.current) {
@@ -34,8 +33,6 @@ function ProjectCard({ project, position, rotation }: ProjectCardProps) {
   const handleClick = () => {
     if (project.link) {
       window.open(project.link, '_blank', 'noopener,noreferrer')
-      setClicked(true)
-      setTimeout(() => setClicked(false), 300)
     }
   }
 

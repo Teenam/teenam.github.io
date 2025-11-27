@@ -1,3 +1,6 @@
+import { ABSOLUTE_CENTERED, HOVER_TRANSITION } from '../constants/styles'
+import { createHoverHandlers } from '../utils/helpers'
+
 interface HeaderProps {
   title: string
   subtitle: string
@@ -6,14 +9,17 @@ interface HeaderProps {
 }
 
 function Header({ title, subtitle, onToggleProjects, showProjects }: HeaderProps) {
+  const buttonHoverHandlers = createHoverHandlers(
+    'rgba(255, 255, 255, 0.2)',
+    'rgba(255, 255, 255, 0.3)',
+    'translateY(0)',
+    'translateY(-2px)'
+  )
   return (
     <header
       style={{
-        position: 'absolute',
+        ...ABSOLUTE_CENTERED,
         top: '2rem',
-        left: '50%',
-        transform: 'translateX(-50%)',
-        textAlign: 'center',
         color: 'white',
         pointerEvents: 'auto',
         zIndex: 20,
@@ -52,17 +58,10 @@ function Header({ title, subtitle, onToggleProjects, showProjects }: HeaderProps
           borderRadius: '8px',
           cursor: 'pointer',
           backdropFilter: 'blur(10px)',
-          transition: 'all 0.3s ease',
+          transition: HOVER_TRANSITION,
           pointerEvents: 'auto',
         }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)'
-          e.currentTarget.style.transform = 'translateY(-2px)'
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)'
-          e.currentTarget.style.transform = 'translateY(0)'
-        }}
+        {...buttonHoverHandlers}
       >
         {showProjects ? 'Hide Projects' : 'Show Projects'}
       </button>

@@ -4,6 +4,7 @@ import { OrbitControls, Environment, PerspectiveCamera } from '@react-three/drei
 import Scene from './components/Scene'
 import UI from './components/UI'
 import type { Config } from './types/config'
+import { GRADIENT_BG, FULL_VIEWPORT_STYLES, CENTERED_FLEX } from './constants/styles'
 
 function App() {
   const [config, setConfig] = useState<Config | null>(null)
@@ -53,15 +54,11 @@ function App() {
   if (loading || !config) {
     return (
       <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        width: '100vw',
-        height: '100vh',
-        minHeight: '100vh',
+        ...CENTERED_FLEX,
+        ...FULL_VIEWPORT_STYLES,
         color: 'white',
         fontSize: '1.5rem',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+        background: GRADIENT_BG
       }}>
         Loading...
       </div>
@@ -70,11 +67,9 @@ function App() {
 
   return (
     <div style={{ 
-      width: '100vw', 
-      height: '100vh', 
-      minHeight: '100vh',
+      ...FULL_VIEWPORT_STYLES,
       position: 'relative', 
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      background: GRADIENT_BG,
       display: 'block',
       margin: 0,
       padding: 0
