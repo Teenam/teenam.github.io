@@ -11,7 +11,12 @@ function App() {
 
   useEffect(() => {
     fetch('/config.json')
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Failed to load config: ${res.status}`)
+        }
+        return res.json()
+      })
       .then((data: Config) => {
         setConfig(data)
         document.title = data.page.title
@@ -19,6 +24,28 @@ function App() {
       })
       .catch((error) => {
         console.error('Error loading config:', error)
+        // Fallback config if fetch fails
+        const fallbackConfig: Config = {
+          page: {
+            title: "Portfolio - Projects",
+            mainTitle: "My Projects",
+            subtitle: "A collection of my work and creations"
+          },
+          projects: [
+            {
+              title: "Example Project",
+              description: "Edit public/config.json to add your projects",
+              link: "",
+              type: "project"
+            }
+          ],
+          footer: {
+            text: "Connect with me",
+            name: "Your Name",
+            socials: []
+          }
+        }
+        setConfig(fallbackConfig)
         setLoading(false)
       })
   }, [])
@@ -39,9 +66,13 @@ function App() {
   }
 
   return (
-    <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
-      <Canvas shadows>
-        <PerspectiveCamera makeDefault position={[0, 0, 10]} />
+    <div style={{ width: '100vw', height: '100vh', position: 'relative', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+      <Canvas 
+        shadows
+        gl={{ antialias: true, alpha: false }}
+        dpr={[1, 2]}
+      >
+        <PerspectiveCamera makeDefault position={[0, 0, 10]} fov={50} />
         <ambientLight intensity={0.5} />
         <pointLight position={[10, 10, 10]} intensity={1} castShadow />
         <directionalLight position={[-10, 10, -10]} intensity={0.5} />

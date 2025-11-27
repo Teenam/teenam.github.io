@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Mesh, Vector3 } from 'three'
+import { Mesh, Vector3, Group } from 'three'
 import { Text, Box } from '@react-three/drei'
 import type { Project } from '../types/config'
 
@@ -11,19 +11,22 @@ interface ProjectCardProps {
 }
 
 function ProjectCard({ project, position, rotation }: ProjectCardProps) {
-  const meshRef = useRef<Mesh>(null)
+  const groupRef = useRef<Group>(null)
+  const boxRef = useRef<Mesh>(null)
   const [hovered, setHovered] = useState(false)
   const [clicked, setClicked] = useState(false)
 
   useFrame((state) => {
-    if (meshRef.current) {
+    if (groupRef.current) {
       const time = state.clock.elapsedTime
-      meshRef.current.position.y = position[1] + Math.sin(time + position[0]) * 0.1
-      
+      groupRef.current.position.y = position[1] + Math.sin(time + position[0]) * 0.1
+    }
+    
+    if (boxRef.current) {
       if (hovered) {
-        meshRef.current.scale.lerp(new Vector3(1.1, 1.1, 1.1), 0.1)
+        boxRef.current.scale.lerp(new Vector3(1.1, 1.1, 1.1), 0.1)
       } else {
-        meshRef.current.scale.lerp(new Vector3(1, 1, 1), 0.1)
+        boxRef.current.scale.lerp(new Vector3(1, 1, 1), 0.1)
       }
     }
   })
@@ -37,25 +40,24 @@ function ProjectCard({ project, position, rotation }: ProjectCardProps) {
   }
 
   return (
-    <group position={position} rotation={rotation}>
-      <mesh
-        ref={meshRef}
+    <group ref={groupRef} position={position} rotation={rotation}>
+      <Box
+        ref={boxRef}
+        args={[3, 2, 0.2]}
         onClick={handleClick}
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
         castShadow
         receiveShadow
       >
-        <Box args={[3, 2, 0.2]}>
-          <meshStandardMaterial
-            color={hovered ? '#8b5cf6' : '#6366f1'}
-            metalness={0.3}
-            roughness={0.4}
-            emissive={hovered ? '#4f46e5' : '#000000'}
-            emissiveIntensity={hovered ? 0.2 : 0}
-          />
-        </Box>
-      </mesh>
+        <meshStandardMaterial
+          color={hovered ? '#8b5cf6' : '#6366f1'}
+          metalness={0.3}
+          roughness={0.4}
+          emissive={hovered ? '#4f46e5' : '#000000'}
+          emissiveIntensity={hovered ? 0.2 : 0}
+        />
+      </Box>
       
       <Text
         position={[0, 0.5, 0.15]}
