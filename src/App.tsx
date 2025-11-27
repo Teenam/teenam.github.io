@@ -9,9 +9,10 @@ import { GRADIENT_BG, FULL_VIEWPORT_STYLES, CENTERED_FLEX } from './constants/st
 function App() {
   const [config, setConfig] = useState<Config | null>(null)
   const [loading, setLoading] = useState(true)
+  const configUrl = `${import.meta.env.BASE_URL}config.json`
 
   useEffect(() => {
-    fetch('/config.json')
+    fetch(configUrl)
       .then((res) => {
         if (!res.ok) {
           throw new Error(`Failed to load config: ${res.status}`)
@@ -49,7 +50,7 @@ function App() {
         setConfig(fallbackConfig)
         setLoading(false)
       })
-  }, [])
+  }, [configUrl])
 
   if (loading || !config) {
     return (
