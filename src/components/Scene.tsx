@@ -5,6 +5,7 @@ import ProjectCard from './ProjectCard'
 import type { Project, Config } from '../types/config'
 
 import SocialIcons from './SocialIcons'
+import Sun from './Sun'
 
 interface SceneProps {
   projects: Project[]
@@ -12,16 +13,15 @@ interface SceneProps {
 }
 
 function Scene({ projects, socials }: SceneProps) {
-  const swarmRef = useRef<Group>(null)
+  const sceneRef = useRef<Group>(null)
 
-  useFrame((state) => {
-    if (!swarmRef.current) return
-    const t = state.clock.elapsedTime * 0.05
-    swarmRef.current.rotation.y = Math.sin(t) * 0.2
-    swarmRef.current.rotation.x = Math.cos(t * 0.7) * 0.05
+  // Gentle scene rotation
+  useFrame(() => {
+    if (!sceneRef.current) return
+    sceneRef.current.rotation.y += 0.0005
   })
 
-  const cubeConfigs = useMemo(() => {
+  const planetConfigs = useMemo(() => {
     const activeProjects = projects.length
       ? projects
       : [
@@ -34,40 +34,50 @@ function Scene({ projects, socials }: SceneProps) {
       ]
 
     return activeProjects.map((project, index) => {
+      // Orbital radii - stagger them out from the sun
+      const orbitRadius = 5 + (index * 1.5)
+
+      // Initial angle for spacing
       const angle = (index / Math.max(activeProjects.length, 1)) * Math.PI * 2
-      const radius = 3.5 + (index % 4)
-      const heightVariance = ((index % 5) - 2) * 0.8
+
+      // Slight vertical variance for visual interest
+      const heightVariance = ((index % 3) - 1) * 0.4
 
       const basePosition: [number, number, number] = [
-        Math.cos(angle) * radius,
+        Math.cos(angle) * orbitRadius,
         heightVariance,
-        Math.sin(angle) * radius,
+        Math.sin(angle) * orbitRadius,
       ]
 
       return {
         project,
         basePosition,
-        floatSpeed: 0.6 + (index % 5) * 0.15,
-        rotationSpeed: 0.3 + (index % 4) * 0.08,
+        orbitRadius,
+        orbitSpeed: 0.05 + (index % 3) * 0.02, // Slower, varied speeds
       }
     })
   }, [projects])
 
   return (
-    <group ref={swarmRef}>
-      {cubeConfigs.map(({ project, basePosition, floatSpeed, rotationSpeed }, index) => (
+    <group ref={sceneRef}>
+      {/* Central Sun */}
+      <Sun name="Portfolio" />
+
+      {/* Project Planets */}
+      {planetConfigs.map(({ project, basePosition }, index) => (
         <ProjectCard
           key={`${project.title}-${index}`}
           project={project}
           basePosition={basePosition}
-          floatSpeed={floatSpeed}
-          rotationSpeed={rotationSpeed}
+          floatSpeed={0.3} // Reduced floating
+          rotationSpeed={0.2} // Slower rotation
         />
       ))}
-      <SocialIcons socials={socials} />
+
+      {/* Social Planet - outermost orbit */}
+      <SocialIcons socials={socials} position={[0, 0, 12]} />
     </group>
   )
 }
 
 export default Scene
-

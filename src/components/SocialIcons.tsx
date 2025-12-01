@@ -1,60 +1,33 @@
-import { useMemo, useState } from 'react'
-import { SVGLoader } from 'three-stdlib'
+import { useRef, useState } from 'react'
+import { useFrame } from '@react-three/fiber'
+import { Text } from '@react-three/drei'
+import { Group } from 'three'
 import type { Config } from '../types/config'
 
-// SVG Paths for icons
-const ICONS = {
-    github: "M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z",
-    linkedin: "M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z",
-    twitter: "M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z",
-    email: "M12 12.713l-11.985-9.713h23.97l-11.985 9.713zm0 2.574l-12-9.725v15.438h24v-15.438l-12 9.725z",
-}
-
-interface SocialIconProps {
-    icon: string
+interface SocialIconMoonProps {
     url: string
-    position: [number, number, number]
+    orbitRadius: number
+    orbitSpeed: number
+    initialAngle: number
     color?: string
+    name: string
 }
 
-function SocialIcon({ icon, url, position, color = 'white' }: SocialIconProps) {
+function SocialIconMoon({ url, orbitRadius, orbitSpeed, initialAngle, color = '#60a5fa', name }: SocialIconMoonProps) {
     const [hovered, setHovered] = useState(false)
+    const moonRef = useRef<Group>(null)
 
-    const shapes = useMemo(() => {
-        const path = ICONS[icon as keyof typeof ICONS]
-        if (!path) {
-            console.warn(`No SVG path found for icon: ${icon}`)
-            return []
-        }
-
-        try {
-            const loader = new SVGLoader()
-            // SVGLoader expects a full SVG string, not just the path data
-            const svgData = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="${path}"/></svg>`
-            const shapePath = loader.parse(svgData)
-
-            console.log(`Parsed ${icon}, paths:`, shapePath.paths.length)
-
-            const allShapes = shapePath.paths.flatMap((p: any) => {
-                // SVGLoader paths might need to be flipped or scaled
-                // But let's try raw first
-                return p.toShapes(true)
-            })
-
-            console.log(`Generated ${allShapes.length} shapes for ${icon}`)
-            return allShapes
-        } catch (error) {
-            console.error(`Error parsing SVG for ${icon}:`, error)
-            return []
-        }
-    }, [icon])
-
-    // Use fallback box if no shapes
-    const useFallback = shapes.length === 0
+    useFrame((state) => {
+        if (!moonRef.current) return
+        const angle = initialAngle + state.clock.elapsedTime * orbitSpeed
+        moonRef.current.position.x = Math.cos(angle) * orbitRadius
+        moonRef.current.position.z = Math.sin(angle) * orbitRadius
+        moonRef.current.rotation.y += 0.01
+    })
 
     return (
         <group
-            position={position}
+            ref={moonRef}
             onClick={(e) => {
                 e.stopPropagation()
                 window.open(url, '_blank')
@@ -68,47 +41,29 @@ function SocialIcon({ icon, url, position, color = 'white' }: SocialIconProps) {
                 setHovered(false)
             }}
         >
-            {useFallback ? (
-                // Fallback: simple box
-                <mesh scale={0.5}>
-                    <boxGeometry args={[1, 1, 0.2]} />
-                    <meshStandardMaterial
-                        color={hovered ? '#667eea' : color}
-                        roughness={0.3}
-                        metalness={0.8}
-                        emissive={hovered ? '#667eea' : 'black'}
-                        emissiveIntensity={hovered ? 0.5 : 0}
-                    />
-                </mesh>
-            ) : (
-                // SVG extrusion
-                <group
-                    scale={0.1}
-                    rotation={[Math.PI, 0, 0]}
+            {/* Moon body */}
+            <mesh scale={hovered ? 0.3 : 0.25}>
+                <sphereGeometry args={[1, 16, 16]} />
+                <meshStandardMaterial
+                    color={hovered ? '#ffffff' : color}
+                    roughness={0.5}
+                    metalness={0.6}
+                    emissive={hovered ? color : '#000000'}
+                    emissiveIntensity={hovered ? 0.5 : 0}
+                />
+            </mesh>
+
+            {/* Moon label */}
+            {hovered && (
+                <Text
+                    position={[0, 0.5, 0]}
+                    fontSize={0.15}
+                    color="#ffffff"
+                    anchorX="center"
+                    anchorY="middle"
                 >
-                    <mesh position={[-12, -12, 0]}>
-                        <extrudeGeometry
-                            args={[
-                                shapes,
-                                {
-                                    depth: 5,
-                                    bevelEnabled: true,
-                                    bevelThickness: 1,
-                                    bevelSize: 1,
-                                    bevelSegments: 3
-                                }
-                            ]}
-                        />
-                        <meshStandardMaterial
-                            color={hovered ? '#667eea' : color}
-                            roughness={0.3}
-                            metalness={0.8}
-                            emissive={hovered ? '#667eea' : 'black'}
-                            emissiveIntensity={hovered ? 0.5 : 0}
-                            side={2}
-                        />
-                    </mesh>
-                </group>
+                    {name}
+                </Text>
             )}
         </group>
     )
@@ -116,26 +71,66 @@ function SocialIcon({ icon, url, position, color = 'white' }: SocialIconProps) {
 
 interface SocialIconsProps {
     socials: Config['footer']['socials']
+    position?: [number, number, number]
 }
 
-export default function SocialIcons({ socials }: SocialIconsProps) {
-    return (
-        <group position={[0, -4, 0]}>
-            {socials.map((social, index) => {
-                // Position them in a row
-                const spacing = 2.5
-                const totalWidth = (socials.length - 1) * spacing
-                const x = (index * spacing) - (totalWidth / 2)
+export default function SocialIcons({ socials, position = [0, 0, 12] }: SocialIconsProps) {
+    const planetRef = useRef<Group>(null)
 
-                return (
-                    <SocialIcon
-                        key={social.name}
-                        icon={social.icon}
-                        url={social.url}
-                        position={[x, 0, 0]}
+    useFrame(() => {
+        if (!planetRef.current) return
+        planetRef.current.rotation.y += 0.003
+    })
+
+    const moonColors: Record<string, string> = {
+        github: '#333333',
+        linkedin: '#0077B5',
+        twitter: '#1DA1F2',
+        email: '#EA4335',
+        instagram: '#E4405F',
+        youtube: '#FF0000',
+    }
+
+    return (
+        <group position={position}>
+            {/* Social Planet */}
+            <group ref={planetRef}>
+                <mesh>
+                    <sphereGeometry args={[1.2, 32, 32]} />
+                    <meshStandardMaterial
+                        color="#8B5CF6"
+                        roughness={0.4}
+                        metalness={0.3}
+                        emissive="#6D28D9"
+                        emissiveIntensity={0.3}
                     />
-                )
-            })}
+                </mesh>
+
+                {/* "Social" text on planet surface */}
+                <Text
+                    position={[0, 0, 1.21]}
+                    fontSize={0.35}
+                    color="#ffffff"
+                    anchorX="center"
+                    anchorY="middle"
+                    fontWeight="bold"
+                >
+                    Social
+                </Text>
+            </group>
+
+            {/* Social Icons as Moons */}
+            {socials.map((social, index) => (
+                <SocialIconMoon
+                    key={social.name}
+                    url={social.url}
+                    name={social.name}
+                    orbitRadius={2 + (index * 0.3)}
+                    orbitSpeed={0.3 - (index * 0.05)}
+                    initialAngle={(index / socials.length) * Math.PI * 2}
+                    color={moonColors[social.icon.toLowerCase()] || '#60a5fa'}
+                />
+            ))}
         </group>
     )
 }
