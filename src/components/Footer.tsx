@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { Github, Linkedin, Twitter, Mail, Instagram, Youtube, Link as LinkIcon, ChevronUp, ChevronDown } from 'lucide-react'
 import type { Config } from '../types/config'
 import { ABSOLUTE_CENTERED, GLASSMORPHISM, HOVER_TRANSITION } from '../constants/styles'
 import { getCurrentYear, createHoverHandlers } from '../utils/helpers'
@@ -7,7 +9,9 @@ interface FooterProps {
 }
 
 function Footer({ footer }: FooterProps) {
+  const [isOpen, setIsOpen] = useState(false)
   const currentYear = getCurrentYear()
+
   const socialHoverHandlers = createHoverHandlers(
     'rgba(255, 255, 255, 0.2)',
     'rgba(255, 255, 255, 0.3)',
@@ -15,45 +19,73 @@ function Footer({ footer }: FooterProps) {
     'translateY(-4px) scale(1.1)'
   )
 
-  const getSocialIcon = (iconName: string): string => {
-    const icons: Record<string, string> = {
-      github: '🔗',
-      linkedin: '💼',
-      twitter: '🐦',
-      email: '✉️',
-      instagram: '📷',
-      youtube: '▶️',
+  const getSocialIcon = (iconName: string) => {
+    const props = { size: 24 }
+    const icons: Record<string, JSX.Element> = {
+      github: <Github {...props} />,
+      linkedin: <Linkedin {...props} />,
+      twitter: <Twitter {...props} />,
+      email: <Mail {...props} />,
+      instagram: <Instagram {...props} />,
+      youtube: <Youtube {...props} />,
     }
-    return icons[iconName.toLowerCase()] || '🔗'
+    return icons[iconName.toLowerCase()] || <LinkIcon {...props} />
   }
 
   return (
     <footer
       style={{
         ...ABSOLUTE_CENTERED,
-        bottom: '2rem',
+        bottom: 0,
+        top: 'auto',
         color: 'white',
         pointerEvents: 'auto',
         zIndex: 20,
+        transform: isOpen ? 'translate(-50%, 0)' : 'translate(-50%, calc(100% - 40px))',
+        transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
       }}
     >
+      {/* Tab/Slit */}
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          position: 'absolute',
+          top: '-40px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '120px',
+          height: '40px',
+          background: 'rgba(255, 255, 255, 0.1)',
+          backdropFilter: 'blur(10px)',
+          borderTopLeftRadius: '12px',
+          borderTopRightRadius: '12px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          borderBottom: 'none',
+        }}
+      >
+        {isOpen ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
+      </div>
+
       <div
         style={{
           ...GLASSMORPHISM,
-          borderRadius: '16px',
+          borderBottomLeftRadius: 0,
+          borderBottomRightRadius: 0,
+          borderTopLeftRadius: '24px',
+          borderTopRightRadius: '24px',
           padding: '2rem 3rem',
           minWidth: '300px',
+          width: '100vw',
+          maxWidth: '600px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
         }}
       >
-        <p
-          style={{
-            fontSize: '1.125rem',
-            marginBottom: '1.5rem',
-            fontWeight: 500,
-          }}
-        >
-          {footer.text}
-        </p>
         <div
           style={{
             display: 'flex',
@@ -79,7 +111,6 @@ function Footer({ footer }: FooterProps) {
                 borderRadius: '50%',
                 color: 'white',
                 textDecoration: 'none',
-                fontSize: '1.5rem',
                 transition: HOVER_TRANSITION,
                 cursor: 'pointer',
               }}
@@ -95,7 +126,7 @@ function Footer({ footer }: FooterProps) {
           style={{
             fontSize: '0.875rem',
             opacity: 0.8,
-            marginTop: '1rem',
+            marginTop: '0.5rem',
           }}
         >
           &copy; {currentYear} {footer.name}. All rights reserved.

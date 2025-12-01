@@ -1,4 +1,4 @@
-import { useState } from 'react'
+
 import Header from './Header'
 import Footer from './Footer'
 import type { Config } from '../types/config'
@@ -8,8 +8,6 @@ interface UIProps {
 }
 
 function UI({ config }: UIProps) {
-  const [showProjects, setShowProjects] = useState(false)
-
   return (
     <div
       style={{
@@ -25,8 +23,6 @@ function UI({ config }: UIProps) {
       <Header
         title={config.page.mainTitle}
         subtitle={config.page.subtitle}
-        onToggleProjects={() => setShowProjects(!showProjects)}
-        showProjects={showProjects}
       />
       <Footer footer={config.footer} />
     </div>

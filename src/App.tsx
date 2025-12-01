@@ -99,10 +99,10 @@ function App() {
 
   if (loading || !config) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
         width: '100vw',
         height: '100vh',
         minHeight: '100vh',
@@ -118,17 +118,17 @@ function App() {
   const effectiveProjects = projects.length ? projects : config.projects
 
   return (
-    <div style={{ 
-      width: '100vw', 
-      height: '100vh', 
+    <div style={{
+      width: '100vw',
+      height: '100vh',
       minHeight: '100vh',
-      position: 'relative', 
+      position: 'relative',
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       display: 'block',
       margin: 0,
       padding: 0
     }}>
-      <Canvas 
+      <Canvas
         shadows
         gl={{ antialias: true, alpha: false }}
         dpr={[1, 2]}
@@ -139,8 +139,8 @@ function App() {
         <pointLight position={[10, 10, 10]} intensity={1} castShadow />
         <directionalLight position={[-10, 10, -10]} intensity={0.5} />
         <Environment preset="sunset" />
-        <Scene projects={effectiveProjects} />
-        <OrbitControls 
+        <Scene projects={effectiveProjects} socials={config.footer.socials} />
+        <OrbitControls
           enableZoom={true}
           enablePan={false}
           minDistance={5}

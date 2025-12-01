@@ -2,13 +2,16 @@ import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Group } from 'three'
 import ProjectCard from './ProjectCard'
-import type { Project } from '../types/config'
+import type { Project, Config } from '../types/config'
+
+import SocialIcons from './SocialIcons'
 
 interface SceneProps {
   projects: Project[]
+  socials: Config['footer']['socials']
 }
 
-function Scene({ projects }: SceneProps) {
+function Scene({ projects, socials }: SceneProps) {
   const swarmRef = useRef<Group>(null)
 
   useFrame((state) => {
@@ -22,13 +25,13 @@ function Scene({ projects }: SceneProps) {
     const activeProjects = projects.length
       ? projects
       : [
-          {
-            title: 'Loading…',
-            description: 'Fetching projects',
-            link: '',
-            type: 'project' as const,
-          },
-        ]
+        {
+          title: 'Loading…',
+          description: 'Fetching projects',
+          link: '',
+          type: 'project' as const,
+        },
+      ]
 
     return activeProjects.map((project, index) => {
       const angle = (index / Math.max(activeProjects.length, 1)) * Math.PI * 2
@@ -61,6 +64,7 @@ function Scene({ projects }: SceneProps) {
           rotationSpeed={rotationSpeed}
         />
       ))}
+      <SocialIcons socials={socials} />
     </group>
   )
 }
