@@ -16,13 +16,7 @@ function ProjectCard({ project, basePosition, floatSpeed, rotationSpeed }: Proje
   const meshRef = useRef<Mesh>(null)
   const [hovered, setHovered] = useState(false)
   const noiseOffset = useMemo(() => Math.random() * 10, [])
-  const shape = useMemo(
-    () => {
-      const options = ['cube', 'icosa', 'torus', 'octa', 'sphere', 'cone'] as const
-      return options[Math.floor(Math.random() * options.length)]
-    },
-    []
-  )
+
   const colors = useMemo(() => {
     const palettes = [
       { base: '#fbbf24', emissive: '#f59e0b' },
@@ -34,13 +28,23 @@ function ProjectCard({ project, basePosition, floatSpeed, rotationSpeed }: Proje
     return palettes[Math.floor(Math.random() * palettes.length)]
   }, [])
 
+  // Planetary features - randomly assigned
+  const features = useMemo(() => ({
+    hasRings: Math.random() > 0.6,
+    hasStorm: Math.random() > 0.7,
+    hasAtmosphere: Math.random() > 0.5,
+    ringTilt: Math.random() * Math.PI / 4,
+    ringColor: ['#fbbf24', '#60a5fa', '#c084fc'][Math.floor(Math.random() * 3)],
+    stormColor: ['#ff6b6b', '#4ecdc4', '#ffe66d'][Math.floor(Math.random() * 3)],
+  }), [])
+
   useFrame((state) => {
     if (!groupRef.current) return
     const time = state.clock.elapsedTime + noiseOffset
 
-    const floatX = Math.sin(time * floatSpeed * 0.6) * 0.6
-    const floatY = Math.cos(time * floatSpeed * 0.8) * 0.5
-    const floatZ = Math.sin(time * floatSpeed * 0.4) * 0.6
+    const floatX = Math.sin(time * floatSpeed * 0.6) * 0.3
+    const floatY = Math.cos(time * floatSpeed * 0.8) * 0.25
+    const floatZ = Math.sin(time * floatSpeed * 0.4) * 0.3
 
     groupRef.current.position.set(
       basePosition[0] + floatX,
@@ -49,10 +53,10 @@ function ProjectCard({ project, basePosition, floatSpeed, rotationSpeed }: Proje
     )
 
     groupRef.current.rotation.y += rotationSpeed * 0.01
-    groupRef.current.rotation.x = Math.sin(time * rotationSpeed * 0.3) * 0.2
+    groupRef.current.rotation.x = Math.sin(time * rotationSpeed * 0.3) * 0.1
 
     if (meshRef.current) {
-      const targetScale = hovered ? 1.2 : 1
+      const targetScale = hovered ? 1.15 : 1
       const damping = 0.1
       meshRef.current.scale.x += (targetScale - meshRef.current.scale.x) * damping
       meshRef.current.scale.y += (targetScale - meshRef.current.scale.y) * damping
@@ -68,6 +72,7 @@ function ProjectCard({ project, basePosition, floatSpeed, rotationSpeed }: Proje
 
   return (
     <group ref={groupRef}>
+      {/* Main Planet Body */}
       <mesh
         ref={meshRef}
         onClick={handleClick}
@@ -76,13 +81,7 @@ function ProjectCard({ project, basePosition, floatSpeed, rotationSpeed }: Proje
         castShadow
         receiveShadow
       >
-        {shape === 'cube' && <boxGeometry args={[1.2, 1.2, 1.2]} />}
-        {shape === 'icosa' && <icosahedronGeometry args={[1.05, 0]} />}
-        {shape === 'torus' && <torusGeometry args={[0.8, 0.25, 32, 64]} />}
-        {shape === 'octa' && <octahedronGeometry args={[1, 0]} />}
-        {shape === 'sphere' && <sphereGeometry args={[1, 32, 32]} />}
-        {shape === 'cone' && <coneGeometry args={[0.9, 1.4, 32]} />}
-
+        <sphereGeometry args={[0.6, 32, 32]} />
         <meshStandardMaterial
           color={hovered ? '#ffffff' : colors.base}
           metalness={0.15}
@@ -92,28 +91,66 @@ function ProjectCard({ project, basePosition, floatSpeed, rotationSpeed }: Proje
         />
       </mesh>
 
-      <Billboard follow position={[0, 1.4, 0]}>
-        <Text
-          fontSize={0.28}
-          color="#ffffff"
-          anchorX="center"
-          anchorY="middle"
-          maxWidth={2}
-          renderOrder={1}
-          material-depthTest={true}
-          material-depthWrite={false}
-        >
-          {project.title}
-        </Text>
-      </Billboard>
+      {/* Title on planet surface */}
+      <Text
+        position={[0, 0, 0.61]}
+        fontSize={0.15}
+        color="#ffffff"
+        anchorX="center"
+        anchorY="middle"
+        maxWidth={1}
+        fontWeight="bold"
+      >
+        {project.title}
+      </Text>
 
-      <Billboard follow position={[0, -1.1, 0]}>
+      {/* Saturn-style Rings */}
+      {features.hasRings && (
+        <mesh rotation={[Math.PI / 2 + features.ringTilt, 0, 0]}>
+          <torusGeometry args={[0.9, 0.15, 8, 32]} />
+          <meshStandardMaterial
+            color={features.ringColor}
+            transparent
+            opacity={0.6}
+            metalness={0.5}
+            roughness={0.4}
+          />
+        </mesh>
+      )}
+
+      {/* Jupiter-style Storm */}
+      {features.hasStorm && (
+        <mesh position={[0.3, 0.2, 0.5]}>
+          <sphereGeometry args={[0.15, 16, 16]} />
+          <meshStandardMaterial
+            color={features.stormColor}
+            emissive={features.stormColor}
+            emissiveIntensity={0.3}
+          />
+        </mesh>
+      )}
+
+      {/* Atmosphere Glow */}
+      {features.hasAtmosphere && (
+        <mesh scale={1.15}>
+          <sphereGeometry args={[0.6, 16, 16]} />
+          <meshStandardMaterial
+            color={colors.base}
+            transparent
+            opacity={0.2}
+            depthWrite={false}
+          />
+        </mesh>
+      )}
+
+      {/* Description Billboard (on hover) */}
+      <Billboard follow position={[0, -0.9, 0]}>
         <Text
-          fontSize={0.18}
+          fontSize={0.12}
           color="#e5e7eb"
           anchorX="center"
           anchorY="middle"
-          maxWidth={2.4}
+          maxWidth={1.5}
           renderOrder={1}
           material-depthTest={true}
           material-depthWrite={false}

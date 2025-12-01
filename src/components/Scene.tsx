@@ -1,11 +1,14 @@
 import { useMemo, useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Group } from 'three'
+import { Group, Vector3 } from 'three'
 import ProjectCard from './ProjectCard'
 import type { Project, Config } from '../types/config'
 
 import SocialIcons from './SocialIcons'
 import Sun from './Sun'
+import Starfield from './Starfield'
+import OrbitRings from './OrbitRings'
+import Spaceships from './Spaceships'
 
 interface SceneProps {
   projects: Project[]
@@ -58,25 +61,47 @@ function Scene({ projects, socials }: SceneProps) {
     })
   }, [projects])
 
+  // Extract orbital radii and positions for other components
+  const orbits = useMemo(() => {
+    const radii = planetConfigs.map(c => c.orbitRadius)
+    radii.push(12) // Social planet orbit
+    return [...new Set(radii)].sort((a, b) => a - b)
+  }, [planetConfigs])
+
+  const planetPositions = useMemo(() => {
+    return planetConfigs.map(c => new Vector3(...c.basePosition))
+  }, [planetConfigs])
+
   return (
-    <group ref={sceneRef}>
-      {/* Central Sun */}
-      <Sun name="Portfolio" />
+    <>
+      {/* Background Starfield */}
+      <Starfield />
 
-      {/* Project Planets */}
-      {planetConfigs.map(({ project, basePosition }, index) => (
-        <ProjectCard
-          key={`${project.title}-${index}`}
-          project={project}
-          basePosition={basePosition}
-          floatSpeed={0.3} // Reduced floating
-          rotationSpeed={0.2} // Slower rotation
-        />
-      ))}
+      <group ref={sceneRef}>
+        {/* Orbit Rings */}
+        <OrbitRings orbits={orbits} />
 
-      {/* Social Planet - outermost orbit */}
-      <SocialIcons socials={socials} position={[0, 0, 12]} />
-    </group>
+        {/* Central Sun */}
+        <Sun name="Portfolio" />
+
+        {/* Project Planets */}
+        {planetConfigs.map(({ project, basePosition }, index) => (
+          <ProjectCard
+            key={`${project.title}-${index}`}
+            project={project}
+            basePosition={basePosition}
+            floatSpeed={0.3} // Reduced floating
+            rotationSpeed={0.2} // Slower rotation
+          />
+        ))}
+
+        {/* Social Planet - outermost orbit */}
+        <SocialIcons socials={socials} position={[0, 0, 12]} />
+
+        {/* Spaceships */}
+        <Spaceships planetPositions={planetPositions} />
+      </group>
+    </>
   )
 }
 
