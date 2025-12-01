@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Github, Linkedin, Twitter, Mail, Instagram, Youtube, Link as LinkIcon, ChevronUp, ChevronDown } from 'lucide-react'
 import type { Config } from '../types/config'
-import { ABSOLUTE_CENTERED, GLASSMORPHISM, HOVER_TRANSITION } from '../constants/styles'
+import { GLASSMORPHISM, HOVER_TRANSITION } from '../constants/styles'
 import { getCurrentYear, createHoverHandlers } from '../utils/helpers'
 
 interface FooterProps {
@@ -35,13 +35,13 @@ function Footer({ footer }: FooterProps) {
   return (
     <footer
       style={{
-        ...ABSOLUTE_CENTERED,
+        position: 'fixed',
+        left: '50%',
         bottom: 0,
-        top: 'auto',
+        transform: isOpen ? 'translateX(-50%)' : 'translate(-50%, 100%)',
         color: 'white',
         pointerEvents: 'auto',
         zIndex: 20,
-        transform: isOpen ? 'translate(-50%, 0)' : 'translate(-50%, calc(100% - 40px))',
         transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
       }}
     >

@@ -22,27 +22,39 @@ function SocialIcon({ icon, url, position, color = 'white' }: SocialIconProps) {
 
     const shapes = useMemo(() => {
         const path = ICONS[icon as keyof typeof ICONS]
-        if (!path) return []
+        if (!path) {
+            console.warn(`No SVG path found for icon: ${icon}`)
+            return []
+        }
 
-        const loader = new SVGLoader()
-        const shapePath = loader.parse(path)
+        try {
+            const loader = new SVGLoader()
+            // SVGLoader expects a full SVG string, not just the path data
+            const svgData = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="${path}"/></svg>`
+            const shapePath = loader.parse(svgData)
 
-        // Note: SVGLoader returns an object with .paths
-        // We need to convert these paths to shapes
-        return shapePath.paths.flatMap((p: any) => {
-            // SVGLoader paths might need to be flipped or scaled
-            // But let's try raw first
-            return p.toShapes(true)
-        })
+            console.log(`Parsed ${icon}, paths:`, shapePath.paths.length)
+
+            const allShapes = shapePath.paths.flatMap((p: any) => {
+                // SVGLoader paths might need to be flipped or scaled
+                // But let's try raw first
+                return p.toShapes(true)
+            })
+
+            console.log(`Generated ${allShapes.length} shapes for ${icon}`)
+            return allShapes
+        } catch (error) {
+            console.error(`Error parsing SVG for ${icon}:`, error)
+            return []
+        }
     }, [icon])
 
-    if (!shapes.length) return null
+    // Use fallback box if no shapes
+    const useFallback = shapes.length === 0
 
     return (
         <group
             position={position}
-            scale={0.05}
-            rotation={[Math.PI, 0, 0]} // Flip because SVG coordinates are top-down
             onClick={(e) => {
                 e.stopPropagation()
                 window.open(url, '_blank')
@@ -56,27 +68,48 @@ function SocialIcon({ icon, url, position, color = 'white' }: SocialIconProps) {
                 setHovered(false)
             }}
         >
-            <mesh position={[-12, -12, 0]}> {/* Center the icon roughly */}
-                <extrudeGeometry
-                    args={[
-                        shapes,
-                        {
-                            depth: 2,
-                            bevelEnabled: true,
-                            bevelThickness: 0.5,
-                            bevelSize: 0.5,
-                            bevelSegments: 3
-                        }
-                    ]}
-                />
-                <meshStandardMaterial
-                    color={hovered ? '#667eea' : color}
-                    roughness={0.3}
-                    metalness={0.8}
-                    emissive={hovered ? '#667eea' : 'black'}
-                    emissiveIntensity={hovered ? 0.5 : 0}
-                />
-            </mesh>
+            {useFallback ? (
+                // Fallback: simple box
+                <mesh scale={0.5}>
+                    <boxGeometry args={[1, 1, 0.2]} />
+                    <meshStandardMaterial
+                        color={hovered ? '#667eea' : color}
+                        roughness={0.3}
+                        metalness={0.8}
+                        emissive={hovered ? '#667eea' : 'black'}
+                        emissiveIntensity={hovered ? 0.5 : 0}
+                    />
+                </mesh>
+            ) : (
+                // SVG extrusion
+                <group
+                    scale={0.1}
+                    rotation={[Math.PI, 0, 0]}
+                >
+                    <mesh position={[-12, -12, 0]}>
+                        <extrudeGeometry
+                            args={[
+                                shapes,
+                                {
+                                    depth: 5,
+                                    bevelEnabled: true,
+                                    bevelThickness: 1,
+                                    bevelSize: 1,
+                                    bevelSegments: 3
+                                }
+                            ]}
+                        />
+                        <meshStandardMaterial
+                            color={hovered ? '#667eea' : color}
+                            roughness={0.3}
+                            metalness={0.8}
+                            emissive={hovered ? '#667eea' : 'black'}
+                            emissiveIntensity={hovered ? 0.5 : 0}
+                            side={2}
+                        />
+                    </mesh>
+                </group>
+            )}
         </group>
     )
 }

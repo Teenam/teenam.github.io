@@ -75,7 +75,12 @@ function App() {
 
         const repos = await response.json()
         const mappedProjects: Project[] = repos
-          .filter((repo: any) => includeForks || !repo.fork)
+          .filter((repo: any) => {
+            if (!includeForks && repo.fork) return false
+            const repoName = repo.name?.toLowerCase() || ''
+            const repoUrl = repo.html_url?.toLowerCase() || ''
+            return !repoName.includes('teenam.github.io') && !repoUrl.includes('teenam.github.io')
+          })
           .map((repo: any) => ({
             title: repo.name,
             description: repo.description || 'A GitHub project',

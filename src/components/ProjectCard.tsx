@@ -99,6 +99,9 @@ function ProjectCard({ project, basePosition, floatSpeed, rotationSpeed }: Proje
           anchorX="center"
           anchorY="middle"
           maxWidth={2}
+          renderOrder={1}
+          material-depthTest={true}
+          material-depthWrite={false}
         >
           {project.title}
         </Text>
@@ -111,6 +114,9 @@ function ProjectCard({ project, basePosition, floatSpeed, rotationSpeed }: Proje
           anchorX="center"
           anchorY="middle"
           maxWidth={2.4}
+          renderOrder={1}
+          material-depthTest={true}
+          material-depthWrite={false}
         >
           {hovered ? (project.type === 'website' ? 'Click to view site' : 'Click to view project') : project.description}
         </Text>
