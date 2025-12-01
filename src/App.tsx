@@ -9,6 +9,7 @@ function App() {
   const [config, setConfig] = useState<Config | null>(null)
   const [loading, setLoading] = useState(true)
   const [projects, setProjects] = useState<Project[]>([])
+  const [version, setVersion] = useState<string>('1.0.0')
 
   useEffect(() => {
     const configPath = `${import.meta.env.BASE_URL}config.json`
@@ -89,6 +90,25 @@ function App() {
           }))
 
         setProjects(mappedProjects.length ? mappedProjects : config.projects)
+
+        // Fetch commit count for version
+        try {
+          const commitsResponse = await fetch(
+            `https://api.github.com/repos/${username}/teenam.github.io/commits?per_page=1`,
+            { signal: controller.signal }
+          )
+          if (commitsResponse.ok) {
+            const linkHeader = commitsResponse.headers.get('Link')
+            if (linkHeader) {
+              const match = linkHeader.match(/page=(\d+)>; rel="last"/)
+              if (match) {
+                setVersion(`v1.0.${match[1]}`)
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Failed to load commit count:', error)
+        }
       } catch (error) {
         if ((error as Error).name !== 'AbortError') {
           console.error('Failed to load GitHub projects:', error)
@@ -150,11 +170,9 @@ function App() {
           enablePan={false}
           minDistance={5}
           maxDistance={20}
-          autoRotate
-          autoRotateSpeed={0.5}
         />
       </Canvas>
-      <UI config={config} />
+      <UI config={config} version={version} />
     </div>
   )
 }

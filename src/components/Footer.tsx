@@ -6,9 +6,10 @@ import { getCurrentYear, createHoverHandlers } from '../utils/helpers'
 
 interface FooterProps {
   footer: Config['footer']
+  version?: string
 }
 
-function Footer({ footer }: FooterProps) {
+function Footer({ footer, version = 'v1.0.0' }: FooterProps) {
   const [isOpen, setIsOpen] = useState(false)
   const currentYear = getCurrentYear()
 
@@ -126,10 +127,10 @@ function Footer({ footer }: FooterProps) {
           style={{
             fontSize: '0.875rem',
             opacity: 0.8,
-            marginTop: '0.5rem',
+            marginTop: '1rem',
           }}
         >
-          &copy; {currentYear} {footer.name}. All rights reserved.
+          &copy; {currentYear} {footer.name}. All rights reserved. {version}
         </p>
       </div>
     </footer>

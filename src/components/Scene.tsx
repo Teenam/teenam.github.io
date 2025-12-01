@@ -1,5 +1,4 @@
 import { useMemo, useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
 import { Group, Vector3 } from 'three'
 import ProjectCard from './ProjectCard'
 import type { Project, Config } from '../types/config'
@@ -18,11 +17,11 @@ interface SceneProps {
 function Scene({ projects, socials }: SceneProps) {
   const sceneRef = useRef<Group>(null)
 
-  // Gentle scene rotation
-  useFrame(() => {
-    if (!sceneRef.current) return
-    sceneRef.current.rotation.y += 0.0005
-  })
+  // Removed auto-rotation for better user control
+  // useFrame(() => {
+  //   if (!sceneRef.current) return
+  //   sceneRef.current.rotation.y += 0.0005
+  // })
 
   const planetConfigs = useMemo(() => {
     const activeProjects = projects.length

@@ -96,20 +96,20 @@ export default function SocialIcons({ socials, position = [0, 0, 12] }: SocialIc
             {/* Social Planet */}
             <group ref={planetRef}>
                 <mesh>
-                    <sphereGeometry args={[1.2, 32, 32]} />
+                    <sphereGeometry args={[0.8, 32, 32]} />
                     <meshStandardMaterial
-                        color="#8B5CF6"
-                        roughness={0.4}
-                        metalness={0.3}
-                        emissive="#6D28D9"
-                        emissiveIntensity={0.3}
+                        color="#6366F1"
+                        roughness={0.3}
+                        metalness={0.4}
+                        emissive="#4F46E5"
+                        emissiveIntensity={0.2}
                     />
                 </mesh>
 
                 {/* "Social" text on planet surface */}
                 <Text
-                    position={[0, 0, 1.21]}
-                    fontSize={0.35}
+                    position={[0, 0, 0.81]}
+                    fontSize={0.25}
                     color="#ffffff"
                     anchorX="center"
                     anchorY="middle"
@@ -125,7 +125,7 @@ export default function SocialIcons({ socials, position = [0, 0, 12] }: SocialIc
                     key={social.name}
                     url={social.url}
                     name={social.name}
-                    orbitRadius={2 + (index * 0.3)}
+                    orbitRadius={1.5 + (index * 0.25)}
                     orbitSpeed={0.3 - (index * 0.05)}
                     initialAngle={(index / socials.length) * Math.PI * 2}
                     color={moonColors[social.icon.toLowerCase()] || '#60a5fa'}

@@ -1,6 +1,7 @@
 import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Group, Vector3 } from 'three'
+import { Group, Vector3, BufferGeometry, Float32BufferAttribute } from 'three'
+import { Points } from '@react-three/drei'
 
 interface SpaceshipsProps {
     planetPositions: Vector3[]
@@ -11,16 +12,31 @@ function Spaceships({ planetPositions }: SpaceshipsProps) {
     const ship2Ref = useRef<Group>(null)
     const ship3Ref = useRef<Group>(null)
 
+    const particles1Ref = useRef<any>(null)
+    const particles2Ref = useRef<any>(null)
+    const particles3Ref = useRef<any>(null)
+
     const shipData = useMemo(() => [
-        { ref: ship1Ref, color: '#00ff88', speed: 0.3, startPlanet: 0, endPlanet: 1 },
-        { ref: ship2Ref, color: '#ff3366', speed: 0.25, startPlanet: 2, endPlanet: 3 },
-        { ref: ship3Ref, color: '#3388ff', speed: 0.35, startPlanet: 1, endPlanet: 4 },
+        { ref: ship1Ref, particlesRef: particles1Ref, color: '#00ff88', speed: 0.3, startPlanet: 0, endPlanet: 1 },
+        { ref: ship2Ref, particlesRef: particles2Ref, color: '#ff3366', speed: 0.25, startPlanet: 2, endPlanet: 3 },
+        { ref: ship3Ref, particlesRef: particles3Ref, color: '#3388ff', speed: 0.35, startPlanet: 1, endPlanet: 4 },
     ], [])
+
+    // Particle trail data
+    const particleGeometries = useMemo(() => {
+        return shipData.map(() => {
+            const count = 20
+            const positions = new Float32Array(count * 3)
+            const geometry = new BufferGeometry()
+            geometry.setAttribute('position', new Float32BufferAttribute(positions, 3))
+            return { geometry, count, trail: Array(count).fill(new Vector3()) }
+        })
+    }, [shipData])
 
     useFrame((state) => {
         if (planetPositions.length < 2) return
 
-        shipData.forEach((ship) => {
+        shipData.forEach((ship, shipIndex) => {
             if (!ship.ref.current) return
 
             const start = planetPositions[ship.startPlanet % planetPositions.length]
@@ -28,32 +44,96 @@ function Spaceships({ planetPositions }: SpaceshipsProps) {
 
             if (!start || !end) return
 
-            const t = (Math.sin(state.clock.elapsedTime * ship.speed) + 1) / 2
+            // Progress along journey (0 to 1)
+            const rawT = (Math.sin(state.clock.elapsedTime * ship.speed) + 1) / 2
 
-            ship.ref.current.position.lerpVectors(start, end, t)
+            // Check if direct path crosses near sun (origin)
+            const midpoint = new Vector3().lerpVectors(start, end, 0.5)
+            const distanceToSun = midpoint.length()
+            const sunAvoidanceThreshold = 2.5
+
+            let position: Vector3
+
+            if (distanceToSun < sunAvoidanceThreshold) {
+                // Arc path to avoid sun
+                const normal = new Vector3().crossVectors(start, end).normalize()
+                const offset = normal.multiplyScalar(3)
+                const waypoint = midpoint.clone().add(offset)
+
+                // Quadratic bezier curve
+                if (rawT < 0.5) {
+                    const t = rawT * 2
+                    position = new Vector3()
+                        .copy(start).multiplyScalar((1 - t) * (1 - t))
+                        .add(waypoint.clone().multiplyScalar(2 * (1 - t) * t))
+                } else {
+                    const t = (rawT - 0.5) * 2
+                    position = new Vector3()
+                        .copy(waypoint).multiplyScalar((1 - t) * (1 - t))
+                        .add(end.clone().multiplyScalar(2 * (1 - t) * t))
+                }
+            } else {
+                // Direct path
+                position = new Vector3().lerpVectors(start, end, rawT)
+            }
+
+            ship.ref.current.position.copy(position)
+
+            // Scale transition: small at planets, large in between
+            const scaleT = Math.sin(rawT * Math.PI) // 0 at start/end, 1 at middle
+            const scale = 0.1 + scaleT * 0.25
+            ship.ref.current.scale.setScalar(scale)
 
             // Look at target
             ship.ref.current.lookAt(end)
+
+            // Update particle trail
+            const particleData = particleGeometries[shipIndex]
+            particleData.trail.unshift(position.clone())
+            particleData.trail.pop()
+
+            const positions = particleData.geometry.attributes.position.array as Float32Array
+            particleData.trail.forEach((pos, i) => {
+                positions[i * 3] = pos.x
+                positions[i * 3 + 1] = pos.y
+                positions[i * 3 + 2] = pos.z
+            })
+            particleData.geometry.attributes.position.needsUpdate = true
         })
     })
 
     return (
         <>
             {shipData.map((ship, index) => (
-                <group key={index} ref={ship.ref}>
-                    {/* Simple spaceship shape: cone body + fins */}
-                    <mesh rotation={[0, Math.PI / 2, 0]} scale={0.3}>
-                        <coneGeometry args={[0.3, 1, 4]} />
-                        <meshStandardMaterial
+                <group key={index}>
+                    {/* Ship */}
+                    <group ref={ship.ref}>
+                        <mesh rotation={[0, Math.PI / 2, 0]} scale={0.3}>
+                            <coneGeometry args={[0.3, 1, 4]} />
+                            <meshStandardMaterial
+                                color={ship.color}
+                                emissive={ship.color}
+                                emissiveIntensity={0.5}
+                                metalness={0.8}
+                                roughness={0.2}
+                            />
+                        </mesh>
+                        <pointLight position={[-0.3, 0, 0]} color={ship.color} intensity={1} distance={2} />
+                    </group>
+
+                    {/* Thruster particles */}
+                    <Points
+                        ref={ship.particlesRef}
+                        positions={particleGeometries[index].geometry.attributes.position.array as Float32Array}
+                    >
+                        <pointsMaterial
+                            size={0.05}
                             color={ship.color}
-                            emissive={ship.color}
-                            emissiveIntensity={0.5}
-                            metalness={0.8}
-                            roughness={0.2}
+                            transparent
+                            opacity={0.6}
+                            sizeAttenuation
                         />
-                    </mesh>
-                    {/* Engine glow */}
-                    <pointLight position={[-0.3, 0, 0]} color={ship.color} intensity={1} distance={2} />
+                    </Points>
                 </group>
             ))}
         </>
