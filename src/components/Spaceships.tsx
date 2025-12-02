@@ -50,14 +50,28 @@ function Spaceships({ planetPositions }: SpaceshipsProps) {
             // Check if direct path crosses near sun (origin)
             const midpoint = new Vector3().lerpVectors(start, end, 0.5)
             const distanceToSun = midpoint.length()
-            const sunAvoidanceThreshold = 2.5
+            const sunAvoidanceThreshold = 3.0 // Increased threshold
 
             let position: Vector3
 
             if (distanceToSun < sunAvoidanceThreshold) {
                 // Arc path to avoid sun
-                const normal = new Vector3().crossVectors(start, end).normalize()
-                const offset = normal.multiplyScalar(3)
+                let normal = new Vector3().crossVectors(start, end)
+
+                // Handle collinear vectors (opposite sides of sun)
+                if (normal.lengthSq() < 0.001) {
+                    // Pick arbitrary perpendicular vector
+                    normal = Math.abs(start.y) < 0.9 * start.length()
+                        ? new Vector3(0, 1, 0)
+                        : new Vector3(1, 0, 0)
+                }
+
+                normal.normalize()
+
+                // Increase offset to ensure we clear the sun (radius 1.5)
+                // Curve passes at 0.5 * offset_height at midpoint
+                // We want clearance of ~3.0, so offset needs to be ~6.0
+                const offset = normal.multiplyScalar(6)
                 const waypoint = midpoint.clone().add(offset)
 
                 // Quadratic bezier curve
@@ -81,7 +95,7 @@ function Spaceships({ planetPositions }: SpaceshipsProps) {
 
             // Scale transition: small at planets, large in between
             const scaleT = Math.sin(rawT * Math.PI) // 0 at start/end, 1 at middle
-            const scale = 0.1 + scaleT * 0.25
+            const scale = 0.15 + scaleT * 0.25 // Min scale 0.15 to avoid disappearing
             ship.ref.current.scale.setScalar(scale)
 
             // Look at target
